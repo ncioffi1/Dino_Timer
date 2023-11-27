@@ -4,16 +4,11 @@
     </head>
     <body>
         <p>This is an example of a simple HTML page with one paragraph.</p>
-        <script src="https://cdn.jsdelivr.net/npm/ruby-3_2-wasm-wasi@1.0.1/dist/browser.script.iife.js"></script>
+        <script src="dino_timer.js"></script>
         <script type="text/ruby">
             require "js"
             puts "This is ruby in the browser!"
-            document = JS.global[:document]
-            load_image = document.getElementById("load-image")
-            button = document.getElementById("my_btn")
-            button.addEventListener "click" do |e|
-              load_image[:src] = "https://upload.wikimedia.org/wikipedia/commons/f/f1/Ruby_logo.png"
-            end
-          </script>
+            
+        </script>
     </body>
 </html>
