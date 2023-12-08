@@ -1,13 +1,572 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<title>My first melonJS app</title>
-		<style>
-			body { margin: 0; }
-		</style>
-	</head>
-	<body>
-		<script type="module" src="/main.js"></script>
-	</body>
+<!-- python3 -m http.server -->
+
+<!doctype html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>Making your first Phaser 3 Game - Part 4</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.js"></script>
+	<div style="font-family:Arial; position: absolute; left:-1000px; visibility:hidden;">.</div>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+<script type="text/javascript">
+
+    var config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+		// fps: {
+        //     target: 60,
+        //     forceSetTimeOut: true
+        // },
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 300 },
+                debug: false
+            }
+        },
+        scale: {
+            // mode: Phaser.Scale.FIT,
+            // parent: 'mygame',
+            // mode: Phaser.Scale.RESIZE,
+            autoCenter: Phaser.Scale.CENTER_BOTH,
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    var platforms;
+
+    var game = new Phaser.Game(config);
+	var state = 0;   // state0:  SETUP, state1: READY, state2: PLAY, state3: FINISHED.
+    var altState = 0;
+	var clicked = false;
+    var bg02;
+    var timerBG;
+    var timerBGGreens;
+    var timerBGTexts;
+    var title2;
+    var title;
+	var timerText;
+    var timer;
+    var startText;
+    var b_start;
+    var dino1;
+    var dino1_startPos;
+    var dino1_endPos;
+    var dino2;
+    var dino3;
+    var dino4;
+    var dinos;
+    var startline;
+    var finishline;
+    var t;
+    var t2;
+    var startTime = 0;
+    var tweens;
+    var myDuration;
+
+		
+    function preload ()
+    {
+        this.load.image('bg02', 'UI/bg02B.png');
+        this.load.image('finishline', 'UI/finishline.png');
+        this.load.image('UIBox1', 'UI/UIBox1.png');
+        this.load.image('UIBox3Greens', 'UI/UIBox3Greens.png');
+        this.load.image('UIBox3Texts', 'UI/UIBox3Texts.png');
+		this.load.image('dino1', 'dinos/dino1.png');
+		this.load.image('dino2', 'dinos/dino2.png');
+		this.load.image('dino3', 'dinos/dino3.png');
+		this.load.image('dino4', 'dinos/dino4.png');
+        // this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
+    }
+
+    var platforms;
+
+    function create ()
+    {
+		bg02 = this.add.image(0, 0, 'bg02');
+		bg02.setOrigin(0, 0);
+        bg02B = this.add.image(800, 0, 'bg02').setOrigin(0, 0);
+        bg02C = this.add.image(-800, 0, 'bg02').setOrigin(0, 0);
+        startline = this.add.sprite(-200, 0, 'finishline').setOrigin(0, 0).setVisible(false);
+        finishline = this.add.sprite(150 + 1600, 0, 'finishline').setOrigin(0, 0).setVisible(true);
+		timerBG = this.add.sprite(200, 60, 'UIBox1');
+		timerBG.setScale(0.75);
+		timerBG.setOrigin(0, 0);
+		timerBGGreens = this.add.sprite(200, 60, 'UIBox3Greens');
+		timerBGGreens.setScale(0.75);
+		timerBGGreens.setOrigin(0, 0);
+		timerBGTexts = this.add.sprite(200, 60, 'UIBox3Texts');
+		timerBGTexts.setScale(0.75);
+		timerBGTexts.setOrigin(0, 0);
+		title2 = this.add.text(245, 30, "nick c's", { fontSize: 36, fontFamily:'Arial' });
+		title2.setOrigin(0, 0);
+		title2.setColor('black');
+		title = this.add.text(400, 100, 'dino timer', { fontSize: 72, fontFamily:'Arial' });
+		title.setOrigin(0.5, 0.5);
+		title.setColor('black');
+		timerText = this.add.text(360, 180, '00:00:00', { fontSize: 72, fontFamily:'Arial' });
+		timerText.setColor('black');
+        startText = this.add.text(120, 50, "start", { fontSize: 30, fontFamily:'Arial' });
+        startText.setColor('black');
+        startText.setVisible(false);
+        dino1 = this.add.sprite(190 + 40, 200, 'dino1').setScale(0.4).setVisible(false)
+        dino2 = this.add.sprite(190, 300, 'dino2').setScale(0.4).setVisible(false)
+        dino3 = this.add.sprite(190 - 40, 400, 'dino3').setScale(0.4).setVisible(false)
+        dino4 = this.add.sprite(190 - 80, 500, 'dino4').setScale(0.4).setVisible(false)
+        dinos = [dino1, dino2, dino3, dino4]
+        timer = new Timer;
+
+
+        this.b_0 = new Button(318, 365, 390, 427, "num", 0)
+        this.b_1 = new Button(378, 421, 390, 427, "num", 1)
+        this.b_2 = new Button(437, 482, 390, 427, "num", 2)
+        this.b_3 = new Button(495, 539, 390, 427, "num", 3)
+        this.b_4 = new Button(554, 598, 390, 427, "num", 4)
+        this.b_clear = new Button(615, 685, 390, 427, "clear", 0)
+        this.b_5 = new Button(318, 365, 342, 380, "num", 5)
+        this.b_6 = new Button(378, 421, 342, 380, "num", 6)
+        this.b_7 = new Button(437, 482, 342, 380, "num", 7)
+        this.b_8 = new Button(495, 539, 342, 380, "num", 8)
+        this.b_9 = new Button(554, 598, 342, 380, "num", 9)
+        this.b_set = new Button(615, 685, 342, 380, "set", 0)
+        this.buttons = [this.b_0, this.b_1, this.b_2, this.b_3, this.b_4, this.b_5, this.b_6, this.b_7, this.b_8, this.b_9, this.b_set, this.b_clear]
+        this.clickX = 0
+        this.clickY = 0
+        this.b_start = new Button(121, 179, 131, 152, "start", 0)
+
+		this.input.on('pointerdown', (pointer) => {
+			console.log('Game window clicked at', pointer.x, pointer.y);
+			// console.log('Game state is', state);
+            this.clickX = pointer.x;
+            this.clickY = pointer.y;
+            // console.log('Game window clicked at', this.clickX, this.clickY);
+			// console.log('Game clicked is', clicked);
+
+			// Disable the input until the pointer is released
+			clicked = true;
+			// console.log('Game clicked is', clicked);
+		});
+
+		function pointerUp(pointer) {
+			// clicked = false;
+			// console.log('Game clicked is', clicked);
+		}
+		// this.input.on('pointerdown', pointerDown);
+		// this.input.on('pointerup', pointerUp);
+		
+		
+    }
+
+    function update ()
+    {
+		if (state == 0) {
+			if (clicked) {
+                clicked = false;
+                // check_timer_button(this.b_0, this.clickX, this.clickY)
+                this.buttons.forEach(button => {
+                    check_timer_button(button, this.clickX, this.clickY)
+                })
+            }
+		} else if (state == 1) {
+            if (clicked) {
+                clicked = false;
+                // check_timer_button(this.b_0, this.clickX, this.clickY)
+                if (this.b_start.buttonCheck(this.clickX, this.clickY)) {
+                    change_state(2);
+                    altState = 0;
+                    console.log("start race")
+                }
+            }
+        } else if (state == 2) {
+            if (altState == 0) {
+                altState = 1;
+                startTime = this.time.now;
+                countdown = this.time.addEvent({delay: 0, callback: increment_timer, callbackScope: this, loop: false});
+                countdown = this.time.addEvent({delay: 1000, callback: increment_timer, callbackScope: this, loop: true});
+
+                interval = this.time.addEvent({delay: 0, callback: generate_tween, callbackScope: this, loop: false});
+                interval = this.time.addEvent({delay: 5000, callback: generate_tween, callbackScope: this, loop: true});
+                    
+            } else if (altState == 1) {
+                if (!timer.check_if_time_left_more_than(8)){
+                    console.log("wrapping up...");
+                    altState = 2;
+                    console.log(interval);
+                    interval.remove();
+                    delay_value = timer.getSecs() * 1000;
+                    console.log("time left: " + delay_value.toString);
+                    myDuration = delay_value;
+                    interval2 = this.time.addEvent({delay: 0, callback: generate_last_tween, callbackScope: this, loop: false});
+                }
+            } else if (altState == 2) {
+                if (!timer.check_if_time_left_more_than(3)) {
+                    altState = 3;
+                    finishline_interval = this.time.addEvent({delay: 0, callback: move_finish_line, callbackScope: this, loop: false});
+                }
+            }
+            // console.log(state);
+            move_backgrounds();
+            // if state is 2, the race has begun!
+
+            // animate dinos
+
+            // increment timer down.
+            // console.log("test");
+
+            if (timer.is_done()){
+                console.log("timer is done!")
+                // console.log(timer.getNums);
+                state = 3;
+            }
+        } else if (state == 3) {
+            // console.log(state);
+            // console.log(state)
+            // race is over.
+            // console.log("race is over!!!")
+        }
+		
+    }
+
+
+    // var self = this;
+
+    function generate_tween() {
+        // this.tweens.data.each(function(tween) {
+        //     tween.stop();
+        //     // this.tweens.remove(tween);
+        // })
+
+        for (var i = 0; i < dinos.length; i++) {
+            startPos = dinos[i].x
+            endPos = Phaser.Math.Between(40, 400);
+            tween = this.tweens.add({
+            targets: dinos[i],
+            x: endPos,
+            duration: 5000,
+            ease: 'Linear',
+            onComplete: function () {
+                console.log('Tween completed');
+            },
+            paused: true
+            });
+            tween.play();
+        }
+    }
+
+    function generate_last_tween() {
+        // this.tweens.data.each(function(tween) {
+        //     tween.stop();
+        //     // this.tweens.remove(tween);
+        // })
+
+        winning_index = Phaser.Math.Between(0, dinos.length - 1)
+
+        for (var i = 0; i < dinos.length; i++) {
+            startPos = dinos[i].x;
+            endPos = 0;
+            if (i == winning_index) {
+                endPos = 610 - (40 * winning_index);
+            }
+            else {
+                endPos = Phaser.Math.Between(40, 400);
+            }
+            tween = this.tweens.add({
+            targets: dinos[i],
+            x: endPos,
+            duration: myDuration,
+            ease: 'Linear',
+            onComplete: function () {
+                console.log('Tween completed');
+            },
+            paused: true
+            });
+            tween.play();
+        }
+    }
+
+    function move_finish_line() {
+        startPos = 150 + 1600;
+        endPos = 150;
+        tween = this.tweens.add({
+            targets: finishline,
+            x: endPos,
+            duration: 3000,
+            ease: 'Linear',
+            onComplete: function () {
+                console.log('Tween completed');
+            },
+            paused: true
+        });
+        tween.play();
+    }
+
+    function move_backgrounds() {
+        // console.log("moving...");
+        move_background(startline, 4, false);
+        move_background(bg02, 4, true);
+        move_background(bg02B, 4, true);
+        move_background(bg02C, 4, true);
+    }
+
+    function move_final(object, speed) {
+        object.setPosition(object.x - speed, object.y);
+    }
+
+    function move_background(object, speed, isLoop) {
+        if ((object.x - speed) < -800) {
+            if (isLoop) {
+                object.x += 1600;
+                console.log("====== TIME =======");
+                console.log(this.time.now - startTime);
+            }
+            else {
+                object.setVisible(false);
+            }
+        }
+        object.setPosition(object.x - speed, object.y);
+    }
+
+    function increment_timer() {
+        timer.increment_down();
+        timer.printNums();
+        update_display();
+    }
+
+
+    function setup_race() {
+        timerBGGreens.setVisible(false);
+        timerBGTexts.setVisible(false);
+        title2.setVisible(false);
+        title.setVisible(false);
+        timerBG.setPosition(timerBG.x - 100, timerBG.y - 140);
+        timerText.setPosition(timerText.x - 100, timerText.y - 140);
+        startText.setVisible(true);
+        dino1.setVisible(true);
+        dino2.setVisible(true);
+        dino3.setVisible(true);
+        dino4.setVisible(true);
+        startline.setVisible(true);
+    }
+
+    function check_timer_button(button, event_x, event_y) {
+        if (button.buttonCheck(event_x, event_y)) {
+            // console.log("true")
+            // console.log(button.button_num)
+            timer_press(button.button_type, button.button_num)
+        }
+        // else {
+        //     console.log("false")
+        //     console.log(event_x, event_y)
+        // }
+    }
+
+    function timer_press(button_type, num) {
+        if (button_type == "num") {
+            timer.add_num(num)
+            update_display()
+            // update_display
+        }
+        else if (button_type == "clear") {
+            timer.reset()
+            update_display()
+        }
+        else if (button_type == "set") {
+            change_state(1);
+            v = convert_time(timer.getNums());
+            // console.log(v); 
+            timer.set(v);
+            // console.log(timer.getNums()) ;
+
+            update_display()
+            setup_race()
+            // convert timer_nums into timer time
+            // start timer
+        }
+    };
+
+    function update_display() {
+        // console.log("getting timer nums");
+        // console.log(timer.getNums);
+        time = (timer.getValue(0).toString() + timer.getValue(1).toString() + ":" 
+        + timer.getValue(2).toString() + timer.getValue(3).toString() + ":" 
+        + timer.getValue(4).toString() + timer.getValue(5).toString()) 
+        timerText.setText(time);
+    }
+
+    function change_state(value) {
+        state = value;
+    }
+
+    function convert_time(timeArr) {
+        hrs = timeArr[0] * 10 + timeArr[1];
+        mins = timeArr[2] * 10 + timeArr[3];
+        secs = timeArr[4] * 10 + timeArr[5];
+        if (secs > 60) {
+            secs -= 60
+            mins += 1
+        }
+        if (mins > 60) {
+            mins -= 60
+            hrs += 1
+        }
+        if (hrs > 24) {
+            hrs = 24
+        }
+        // n = 24
+        // n1 = 2
+        // n2 = 4
+        // n1 = 24 / 10
+        // n2 = 24 % 10 = 4
+        return timeArr2 = [Math.trunc(hrs / 10.0), hrs % 10, Math.trunc(mins / 10.0), mins % 10, Math.trunc(secs / 10.0), secs % 10]
+    }
+
+
+
+
+
+
+
+    
+
+    class Button {
+        constructor(x_left, x_right, y_top, y_bot, button_type, button_num) {
+            this.x_left = x_left
+            this.x_right = x_right
+            this.y_top = y_top
+            this.y_bot = y_bot
+            this.button_type = button_type
+            this.button_num = button_num
+        }
+
+        buttonCheck(x_value, y_value) {
+            if (x_value > this.x_left && x_value < this.x_right) {
+                if (y_value < this.y_bot && y_value > this.y_top) {
+                    return true
+                }
+            }
+            return false
+        }
+    }
+
+    // class Dino {
+    //     constructor(startPos, endPos) {
+    //         this.startPos = startPos
+    //         this.endPos = endPos
+    //     }
+    // }
+
+    class Timer {
+        constructor() {
+            this.timer_nums = [0, 0, 0, 0, 0, 0]
+        }
+
+        reset() {
+            this.timer_nums = [0, 0, 0, 0, 0, 0]
+        }
+
+        getHrs() {
+            return this.timer_nums[0] * 10 + this.timer_nums[1];
+        }
+        getMins() {
+            return this.timer_nums[2] * 10 + this.timer_nums[3];
+        }
+        getSecs() {
+            return secs = this.timer_nums[4] * 10 + this.timer_nums[5];
+        }
+        check_if_time_left_more_than(secs) {
+            // console.log(timer.getHrs())
+            // console.log(timer.getMins())
+            // console.log(timer.getSecs())
+            if (timer.getHrs() == 0){
+                if (timer.getMins() == 0){
+                    if (timer.getSecs() <= secs){
+                        return false;
+                    }     
+                }
+            }
+            return true;    
+        }
+
+        increment_down() {
+            hrs = this.timer_nums[0] * 10 + this.timer_nums[1];
+            mins = this.timer_nums[2] * 10 + this.timer_nums[3];
+            secs = this.timer_nums[4] * 10 + this.timer_nums[5];
+
+            if (secs == 0)
+                if (mins == 0) {
+                    if (hrs == 0) {
+                        // do nothing
+                    }
+                    else  {
+                        hrs -= 1;
+                        mins += 59;
+                        secs += 59;
+                    }
+                }
+                else {
+                    mins -= 1;
+                    secs += 59;
+                }
+            else {
+                secs -= 1;
+            }
+            this.timer_nums = [Math.trunc(hrs / 10.0), hrs % 10, Math.trunc(mins / 10.0), mins % 10, Math.trunc(secs / 10.0), secs % 10]
+        }
+
+        is_done(){
+            hrs = this.timer_nums[0] * 10 + this.timer_nums[1];
+            mins = this.timer_nums[2] * 10 + this.timer_nums[3];
+            secs = this.timer_nums[4] * 10 + this.timer_nums[5];
+            if (hrs == 0){
+                if (mins == 0){
+                    if (secs == 0){
+                        return true;
+                    }
+                }
+            }
+            return false;
+                
+        }
+
+        set(nums) {
+            this.timer_nums = nums
+        }
+
+        getNums(){
+            return this.timer_nums;
+        }
+
+        printNums(){
+            // console.log(this.timer_nums);
+        }
+
+        getValue(index) {
+            return this.timer_nums[index]
+        }
+
+        add_num(num) {
+            this.timer_nums.push(num);
+            this.timer_nums.shift();
+            // console.log(this.timer_nums);
+        }
+    }
+
+
+
+
+</script>
+
+</body>
 </html>

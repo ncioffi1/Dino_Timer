@@ -1,0 +1,13 @@
+canvas {
+    /* width: 100vw;
+    height: 100vh;  */
+    display : block; 
+    padding-top: 100px;
+}
+
+@font-face {
+    font-family: Arial;
+    src: url('Arial.ttf');
+    font-weight: 400;
+    font-weight: normal;
+}
