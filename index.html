@@ -113,12 +113,15 @@
     var interval_start;
     var interval_loop;
     var tmpTime;
+    var noticeA;
+    var noticeB;
     var credits0a;
     var credits1a;
     var credits1b;
     var credits1c;
     var credits2a;
     var credits2b;
+    var q = 0;
 
 	// sound sources:
     // song: kevin macleod - hillbilly swing; creative commons attribution license;
@@ -186,6 +189,8 @@
         green_wins = this.add.sprite(400, 300, 'green_wins').setScale(.25).setVisible(false);
         pink_wins = this.add.sprite(400, 300, 'pink_wins').setScale(.25).setVisible(false);
         orange_wins = this.add.sprite(400, 300, 'orange_wins').setScale(.25).setVisible(false);
+        noticeA = this.add.text(580 + 70, 10, '*note, if you switch tabs,', { fontSize: 14, fontFamily: 'Afacad' }).setColor('black').setAlpha(0.5).setVisible(false);
+        noticeB = this.add.text(602 + 70, 26, 'the timer will pause.', { fontSize: 14, fontFamily: 'Afacad' }).setColor('black').setAlpha(0.5).setVisible(false);
         credits0a = this.add.text(10, 278 + 200, 'Credits', { fontSize: 20, fontFamily: 'Afacad' }).setColor('black');
         credits1a = this.add.text(10, 300 + 200, '"Hillbilly Swing" Kevin MacLeod (incompetech.com)', { fontSize: 14, fontFamily: 'Afacad' }).setColor('gray');
         credits1b = this.add.text(10, 314 + 200, 'Licensed under Creative Commons: By Attribution 4.0 License', { fontSize: 14, fontFamily: 'Afacad' }).setColor('gray');
@@ -247,11 +252,15 @@
 
         // bgmusic = this.sound.add('hillbilly');
         // bgmusic.play();
-		
+		this.sound.pauseOnBlur = false;
+        // game.disableVisibilityChange = true;
+
     }
 
     function update ()
     {
+        q += 1;
+        console.log(q);
 		if (state === 0) {
 			if (clicked) {
                 clicked = false;
@@ -270,6 +279,8 @@
                     altState = 0;
                     console.log("start race");
                     start_music();
+                    noticeA.setVisible(true);
+                    noticeB.setVisible(true);
                     startText.setVisible(false);
                     play_sfx('airhorn');
                     dino1.play("dino1_walk");
@@ -290,7 +301,7 @@
                 interval_start = this.time.addEvent({delay: 0, callback: generate_tween, callbackScope: this, loop: false});
                 
                 tmpTime = timer.getTotalSecs();
-                console.log("tmpTime is " + tmpTime.toString());
+                // console.log("tmpTime is " + tmpTime.toString());
             } 
             else if (altState === 1) {
                 if (timer.getTotalSecs() <= tmpTime - 5){
@@ -304,8 +315,8 @@
                         interval2 = this.time.addEvent({delay: 0, callback: generate_tween, callbackScope: this, loop: false})
                     }    
                 }
-                console.log("tmpTime is " + tmpTime.toString());
-                console.log("timer.getTotalSecs is " + timer.getTotalSecs().toString());
+                // console.log("tmpTime is " + tmpTime.toString());
+                // console.log("timer.getTotalSecs is " + timer.getTotalSecs().toString());
             } 
             else if (altState === 2) {
                 if (!timer.check_if_time_left_more_than(3)) { // was 8
@@ -367,6 +378,20 @@
         update_shadow_position();
     }
 
+    function onGamePause() {
+        // Saving duration (time left) of TimerEvent when pausing the game.
+        this.timeOnPause = timer.duration;
+        // Stopping Timer and clearing its events.
+        timer.stop(true);
+    }
+
+    function onGameResume() {
+        // Adding a new TimerEvent with new delay time.
+        timer.add(this.timeOnPause - this.game.time.pauseDuration, this.timeIsUp, this);
+        // Starting Timer once again.
+        timer.start();
+    }
+
     function reset_main_menu() {
         bg02.setPosition(0, 0);
         bg02B.setPosition(800, 0);
@@ -394,6 +419,8 @@
         green_wins.setVisible(false);
         pink_wins.setVisible(false);
         orange_wins.setVisible(false);
+        noticeA.setVisible(false);
+        noticeB.setVisible(false);
         show_credits();
     }
 
