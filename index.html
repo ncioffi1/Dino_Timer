@@ -54,10 +54,7 @@
         type: Phaser.AUTO,
         width: 800,
         height: 600,
-		// fps: {
-        //     target: 60,
-        //     forceSetTimeOut: true
-        // },
+
         physics: {
             default: 'arcade',
             arcade: {
@@ -79,7 +76,7 @@
     var platforms;
 
     var game = new Phaser.Game(config);
-	var state = 0;   // state0:  SETUP, state1: READY, state2: PLAY, state3: FINISHED.
+	var state = 0;  
     var altState = 0;
 	var clicked = false;
     var bg02;
@@ -122,11 +119,6 @@
     var credits1c;
     var credits2a;
     var credits2b;
-    // var style = {font: "55px Afacad", fill: "#eeeeee"};
-    
-
-
-
 
 	// sound sources:
     // song: kevin macleod - hillbilly swing; creative commons attribution license;
@@ -159,10 +151,6 @@
 
     function create ()
     {
-		// const title = this.add.text(400, 300, 'Hello World!', {
-		// 	fontFamily: 'Roboto',
-		// 	fontSize: '50px'
-		// })
         bg02 = this.add.image(0, 0, 'bg02');
 		bg02.setOrigin(0, 0);
         bg02B = this.add.image(800, 0, 'bg02').setOrigin(0, 0);
@@ -181,9 +169,6 @@
 		title2 = this.add.text(245, 30, "nick c's", { fontSize: 36, fontFamily: 'Afacad' });
 		title2.setOrigin(0, 0);
 		title2.setColor('black');
-		// title = this.add.text(400, 100, 'dino timer', { fontSize: 72, fontFamily: 'Afacad' });
-		// title.setOrigin(0.5, 0.5);
-		// title.setColor('black');
 		timerText = this.add.text(360, 180, '00:00:00', { fontSize: 72, fontFamily: 'Afacad' });
 		timerText.setColor('black');
         startText = this.add.text(120, 50, "start", { fontSize: 30, fontFamily: 'Afacad' }).setColor('black').setVisible(false);
