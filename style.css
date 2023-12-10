@@ -1,13 +1,29 @@
-canvas {
+/* canvas {
     /* width: 100vw;
     height: 100vh;  */
-    display : block; 
-    padding-top: 100px;
-}
+    /* display : block;  */
+    /* padding-top: 100px; */
+/* } */
 
-@font-face {
-    font-family: Arial;
-    src: url('Arial.ttf');
+.center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
+  }
+
+/* @font-face {
+    font-family: "Afacad";
+    src: url('fonts/Afacad-Regular.ttf') format('truetype');
     font-weight: 400;
     font-weight: normal;
-}
+} */
+
+/* @import url(http://fonts.googleapis.com/css?family=Lobster|Roboto|Afacad);body {  font-family: Lobster, Roboto, Afacad; } */
+
+/* @font-face {
+    font-family: 'Amatica SC';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Amatica SC'), url(https://fonts.gstatic.com/s/amaticasc/v1/r4IyjqPgTL10SERuDuUzpAzyDMXhdD8sAj6OAJTFsBI.woff2) format('woff2');
+} */

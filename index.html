@@ -6,8 +6,17 @@
     <meta charset="UTF-8" />
     <title>Making your first Phaser 3 Game - Part 4</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({
+            google: {
+                families: ['Afacad']
+            }
+        });
+    </script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.min.js"></script> -->
     <script src="//cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.js"></script>
-	<div style="font-family:Arial; position: absolute; left:-1000px; visibility:hidden;">.</div>
+	<div style="font-family: Afacad; position: absolute; left:-1000px; visibility:hidden;">.</div>
     <style type="text/css">
         body {
             margin: 0;
@@ -15,7 +24,31 @@
     </style>
 </head>
 <body>
+    <img src="UI/texts/dino_timer_logo_site.png" alt="dino_timer_logo" class="center">
+    <!-- <div style="font-family: Afacad">Hello World!</div> -->
 <script type="text/javascript">
+    var bootGame = function(game){};
+
+    bootGame.prototype.create = function(){
+        console.log("Booting game");
+
+        game.physics.startSystem(Phaser.Physics.ARCADE);
+        game.state.start("loadGame");
+        game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+        // game.world.setBounds(0, -651, 900, 1131);
+
+        game.stage.backgroundColor = "#007f5f";
+    
+
+        //fps
+        game.time.advancedTiming = true;
+
+        //HACK TO PRELOAD A CUSTOM FONT
+        this.game.add.text(0, 0, "hack", {font:"1px Afacad", fill:"#FFFFFF"});
+    }
+
+    bootGame.prototype.preload = function(){
+    }
 
     var config = {
         type: Phaser.AUTO,
@@ -33,10 +66,8 @@
             }
         },
         scale: {
-            // mode: Phaser.Scale.FIT,
-            // parent: 'mygame',
-            // mode: Phaser.Scale.RESIZE,
-            autoCenter: Phaser.Scale.CENTER_BOTH,
+            
+            autoCenter: Phaser.Scale.CENTER_HORIZONTALLY,
         },
         scene: {
             preload: preload,
@@ -52,6 +83,12 @@
     var altState = 0;
 	var clicked = false;
     var bg02;
+    var dino_timer_logo;
+    var blue_wins;
+    var green_wins;
+    var orange_wins;
+    var pink_wins;
+    var wins_screen;
     var timerBG;
     var timerBGGreens;
     var timerBGTexts;
@@ -60,14 +97,14 @@
 	var timerText;
     var timer;
     var startText;
+    var againText;
     var b_start;
     var dino1;
-    var dino1_startPos;
-    var dino1_endPos;
     var dino2;
     var dino3;
     var dino4;
     var dinos;
+    var dinoShadows;
     var startline;
     var finishline;
     var t;
@@ -75,27 +112,58 @@
     var startTime = 0;
     var tweens;
     var myDuration;
+    var bgmusic;
+    var interval_start;
+    var interval_loop;
+    var tmpTime;
+    var credits0a;
+    var credits1a;
+    var credits1b;
+    var credits1c;
+    var credits2a;
+    var credits2b;
+    // var style = {font: "55px Afacad", fill: "#eeeeee"};
+    
 
-		
+
+
+
+	// sound sources:
+    // song: kevin macleod - hillbilly swing; creative commons attribution license;
+    // freesound.org "Tada Fanfare G" by plasterbrain; creative commons 0 license;
+    // freesound.org "airhorn" by jacksonacademyashmore; creative commons 0 license;
     function preload ()
     {
-        this.load.image('bg02', 'UI/bg02B.png');
+        this.load.image('bg02', 'UI/bg02C.png');
         this.load.image('finishline', 'UI/finishline.png');
         this.load.image('UIBox1', 'UI/UIBox1.png');
         this.load.image('UIBox3Greens', 'UI/UIBox3Greens.png');
-        this.load.image('UIBox3Texts', 'UI/UIBox3Texts.png');
-		this.load.image('dino1', 'dinos/dino1.png');
-		this.load.image('dino2', 'dinos/dino2.png');
-		this.load.image('dino3', 'dinos/dino3.png');
-		this.load.image('dino4', 'dinos/dino4.png');
-        // this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
+        this.load.image('UIBox3Texts', 'UI/UIBox3Texts2.png');
+        this.load.image('dino_shadow', 'UI/dino_shadow.png');
+        this.load.image('dino_timer_logo', 'UI/texts/dino_timer_logo.png');
+        this.load.image('blue_wins', 'UI/texts/blue_wins.png')
+        this.load.image('green_wins', 'UI/texts/green_wins.png')
+        this.load.image('orange_wins', 'UI/texts/orange_wins.png')
+        this.load.image('pink_wins', 'UI/texts/pink_wins.png')
+        this.load.spritesheet('dino1_s', 'dinos/sp_dino1.png', { frameWidth: 400, frameHeight: 400 });
+        this.load.spritesheet('dino2_s', 'dinos/sp_dino2.png', { frameWidth: 400, frameHeight: 400 });
+        this.load.spritesheet('dino3_s', 'dinos/sp_dino3.png', { frameWidth: 400, frameHeight: 400 });
+        this.load.spritesheet('dino4_s', 'dinos/sp_dino4.png', { frameWidth: 400, frameHeight: 400 });
+
+        this.load.audio('hillbilly', 'sounds/hillbilly_swing.wav')
+        this.load.audio('airhorn', 'sounds/airhorn.wav')
+        this.load.audio('fanfare', 'sounds/fanfare.wav')
     }
 
     var platforms;
 
     function create ()
     {
-		bg02 = this.add.image(0, 0, 'bg02');
+		// const title = this.add.text(400, 300, 'Hello World!', {
+		// 	fontFamily: 'Roboto',
+		// 	fontSize: '50px'
+		// })
+        bg02 = this.add.image(0, 0, 'bg02');
 		bg02.setOrigin(0, 0);
         bg02B = this.add.image(800, 0, 'bg02').setOrigin(0, 0);
         bg02C = this.add.image(-800, 0, 'bg02').setOrigin(0, 0);
@@ -110,48 +178,64 @@
 		timerBGTexts = this.add.sprite(200, 60, 'UIBox3Texts');
 		timerBGTexts.setScale(0.75);
 		timerBGTexts.setOrigin(0, 0);
-		title2 = this.add.text(245, 30, "nick c's", { fontSize: 36, fontFamily:'Arial' });
+		title2 = this.add.text(245, 30, "nick c's", { fontSize: 36, fontFamily: 'Afacad' });
 		title2.setOrigin(0, 0);
 		title2.setColor('black');
-		title = this.add.text(400, 100, 'dino timer', { fontSize: 72, fontFamily:'Arial' });
-		title.setOrigin(0.5, 0.5);
-		title.setColor('black');
-		timerText = this.add.text(360, 180, '00:00:00', { fontSize: 72, fontFamily:'Arial' });
+		// title = this.add.text(400, 100, 'dino timer', { fontSize: 72, fontFamily: 'Afacad' });
+		// title.setOrigin(0.5, 0.5);
+		// title.setColor('black');
+		timerText = this.add.text(360, 180, '00:00:00', { fontSize: 72, fontFamily: 'Afacad' });
 		timerText.setColor('black');
-        startText = this.add.text(120, 50, "start", { fontSize: 30, fontFamily:'Arial' });
-        startText.setColor('black');
-        startText.setVisible(false);
-        dino1 = this.add.sprite(190 + 40, 200, 'dino1').setScale(0.4).setVisible(false)
-        dino2 = this.add.sprite(190, 300, 'dino2').setScale(0.4).setVisible(false)
-        dino3 = this.add.sprite(190 - 40, 400, 'dino3').setScale(0.4).setVisible(false)
-        dino4 = this.add.sprite(190 - 80, 500, 'dino4').setScale(0.4).setVisible(false)
-        dinos = [dino1, dino2, dino3, dino4]
+        startText = this.add.text(120, 50, "start", { fontSize: 30, fontFamily: 'Afacad' }).setColor('black').setVisible(false);
+        againText = this.add.text(105, 50, "again?", { fontSize: 30, fontFamily: 'Afacad' }).setColor('black').setVisible(false);
+        dino1_shadow = this.add.sprite(190 + 40, 200, 'dino_shadow').setScale(0.4).setVisible(false);
+        dino2_shadow = this.add.sprite(190, 300, 'dino_shadow').setScale(0.4).setVisible(false);
+        dino3_shadow = this.add.sprite(190 - 40, 400, 'dino_shadow').setScale(0.4).setVisible(false);
+        dino4_shadow = this.add.sprite(190 - 80, 500, 'dino_shadow').setScale(0.4).setVisible(false);
+        dino1 = this.add.sprite(190 + 40, 200, 'dino1_s').setScale(0.4).setVisible(false);
+        dino2 = this.add.sprite(190, 300, 'dino2_s').setScale(0.4).setVisible(false);
+        dino3 = this.add.sprite(190 - 40, 400, 'dino3_s').setScale(0.4).setVisible(false);
+        dino4 = this.add.sprite(190 - 80, 500, 'dino4_s').setScale(0.4).setVisible(false);
+        dino_timer_logo = this.add.sprite(400, 110, 'dino_timer_logo').setScale(.25).setVisible(true);
+        blue_wins = this.add.sprite(400, 300, 'blue_wins').setScale(.25).setVisible(false);
+        green_wins = this.add.sprite(400, 300, 'green_wins').setScale(.25).setVisible(false);
+        pink_wins = this.add.sprite(400, 300, 'pink_wins').setScale(.25).setVisible(false);
+        orange_wins = this.add.sprite(400, 300, 'orange_wins').setScale(.25).setVisible(false);
+        credits0a = this.add.text(10, 278 + 200, 'Credits', { fontSize: 20, fontFamily: 'Afacad' }).setColor('black');
+        credits1a = this.add.text(10, 300 + 200, '"Hillbilly Swing" Kevin MacLeod (incompetech.com)', { fontSize: 14, fontFamily: 'Afacad' }).setColor('gray');
+        credits1b = this.add.text(10, 314 + 200, 'Licensed under Creative Commons: By Attribution 4.0 License', { fontSize: 14, fontFamily: 'Afacad' }).setColor('gray');
+        credits1c = this.add.text(10, 328 + 200, 'http://creativecommons.org/licenses/by/4.0/', { fontSize: 14, fontFamily: 'Afacad' }).setColor('gray');
+        credits2a = this.add.text(10, 356 + 200, 'Sound Effects sourced from Freesound.org', { fontSize: 14, fontFamily: 'Afacad' }).setColor('gray');
+        credits2b = this.add.text(10, 370 + 200, 'Sound Effects licensed under Creative Commons 0 License', { fontSize: 14, fontFamily: 'Afacad' }).setColor('gray');
+        dinos = [dino1, dino2, dino3, dino4];
+        dinoShadows = [dino1_shadow, dino2_shadow, dino3_shadow, dino4_shadow];
         timer = new Timer;
 
 
-        this.b_0 = new Button(318, 365, 390, 427, "num", 0)
-        this.b_1 = new Button(378, 421, 390, 427, "num", 1)
-        this.b_2 = new Button(437, 482, 390, 427, "num", 2)
-        this.b_3 = new Button(495, 539, 390, 427, "num", 3)
-        this.b_4 = new Button(554, 598, 390, 427, "num", 4)
-        this.b_clear = new Button(615, 685, 390, 427, "clear", 0)
-        this.b_5 = new Button(318, 365, 342, 380, "num", 5)
-        this.b_6 = new Button(378, 421, 342, 380, "num", 6)
-        this.b_7 = new Button(437, 482, 342, 380, "num", 7)
-        this.b_8 = new Button(495, 539, 342, 380, "num", 8)
-        this.b_9 = new Button(554, 598, 342, 380, "num", 9)
-        this.b_set = new Button(615, 685, 342, 380, "set", 0)
+        this.b_0 = new Button(318, 365, 355, 400, "num", 0)
+        this.b_1 = new Button(378, 421, 355, 400, "num", 1)
+        this.b_2 = new Button(437, 482, 355, 400, "num", 2)
+        this.b_3 = new Button(495, 539, 355, 400, "num", 3)
+        this.b_4 = new Button(554, 598, 355, 400, "num", 4)
+        this.b_clear = new Button(615, 685, 355, 400, "clear", 0)
+        this.b_5 = new Button(318, 365, 298, 342, "num", 5)
+        this.b_6 = new Button(378, 421, 298, 342, "num", 6)
+        this.b_7 = new Button(437, 482, 298, 342, "num", 7)
+        this.b_8 = new Button(495, 539, 298, 342, "num", 8)
+        this.b_9 = new Button(554, 598, 298, 342, "num", 9)
+        this.b_set = new Button(615, 685, 298, 342, "set", 0)
         this.buttons = [this.b_0, this.b_1, this.b_2, this.b_3, this.b_4, this.b_5, this.b_6, this.b_7, this.b_8, this.b_9, this.b_set, this.b_clear]
         this.clickX = 0
         this.clickY = 0
-        this.b_start = new Button(121, 179, 131, 152, "start", 0)
+        this.b_start = new Button(121, 179, 50, 78, "start", 0)
+        this.b_again = new Button(103, 186, 50, 82, "again", 0)
 
 		this.input.on('pointerdown', (pointer) => {
 			console.log('Game window clicked at', pointer.x, pointer.y);
 			// console.log('Game state is', state);
             this.clickX = pointer.x;
             this.clickY = pointer.y;
-            // console.log('Game window clicked at', this.clickX, this.clickY);
+            console.log('Game window clicked at', this.clickX, this.clickY);
 			// console.log('Game clicked is', clicked);
 
 			// Disable the input until the pointer is released
@@ -159,19 +243,31 @@
 			// console.log('Game clicked is', clicked);
 		});
 
-		function pointerUp(pointer) {
-			// clicked = false;
-			// console.log('Game clicked is', clicked);
-		}
-		// this.input.on('pointerdown', pointerDown);
-		// this.input.on('pointerup', pointerUp);
-		
+		// function pointerUp(pointer) {
+
+		// }
+        this.anims.create({key: "dino1_idle", frameRate: 1, frames: this.anims.generateFrameNumbers("dino1_s", { start: 0, end: 0 }), repeat: 1 });
+        this.anims.create({key: "dino2_idle", frameRate: 1, frames: this.anims.generateFrameNumbers("dino2_s", { start: 0, end: 0 }), repeat: 1 });
+        this.anims.create({key: "dino3_idle", frameRate: 1, frames: this.anims.generateFrameNumbers("dino3_s", { start: 0, end: 0 }), repeat: 1 });
+        this.anims.create({key: "dino4_idle", frameRate: 1, frames: this.anims.generateFrameNumbers("dino4_s", { start: 0, end: 0 }), repeat: 1 });
+        this.anims.create({key: "dino1_walk", frameRate: 7, frames: this.anims.generateFrameNumbers("dino1_s", { start: 0, end: 4 }), repeat: -1 });
+        this.anims.create({key: "dino2_walk", frameRate: 7, frames: this.anims.generateFrameNumbers("dino2_s", { start: 0, end: 4 }), repeat: -1 });
+        this.anims.create({key: "dino3_walk", frameRate: 7, frames: this.anims.generateFrameNumbers("dino3_s", { start: 0, end: 4 }), repeat: -1 });
+        this.anims.create({key: "dino4_walk", frameRate: 7, frames: this.anims.generateFrameNumbers("dino4_s", { start: 0, end: 4 }), repeat: -1 });
+
+        dino1.play("dino1_idle");
+        dino2.play("dino2_idle");
+        dino3.play("dino3_idle");
+        dino4.play("dino4_idle");
+
+        // bgmusic = this.sound.add('hillbilly');
+        // bgmusic.play();
 		
     }
 
     function update ()
     {
-		if (state == 0) {
+		if (state === 0) {
 			if (clicked) {
                 clicked = false;
                 // check_timer_button(this.b_0, this.clickX, this.clickY)
@@ -179,85 +275,208 @@
                     check_timer_button(button, this.clickX, this.clickY)
                 })
             }
-		} else if (state == 1) {
+		} 
+        else if (state == 1) {
             if (clicked) {
                 clicked = false;
                 // check_timer_button(this.b_0, this.clickX, this.clickY)
                 if (this.b_start.buttonCheck(this.clickX, this.clickY)) {
                     change_state(2);
                     altState = 0;
-                    console.log("start race")
+                    console.log("start race");
+                    start_music();
+                    startText.setVisible(false);
+                    play_sfx('airhorn');
+                    dino1.play("dino1_walk");
+                    dino2.play("dino2_walk");
+                    dino3.play("dino3_walk");
+                    dino4.play("dino4_walk");
                 }
             }
-        } else if (state == 2) {
-            if (altState == 0) {
+        } 
+        else if (state === 2) {
+            if (altState === 0) {
                 altState = 1;
                 startTime = this.time.now;
                 countdown = this.time.addEvent({delay: 0, callback: increment_timer, callbackScope: this, loop: false});
                 countdown = this.time.addEvent({delay: 1000, callback: increment_timer, callbackScope: this, loop: true});
 
-                interval = this.time.addEvent({delay: 0, callback: generate_tween, callbackScope: this, loop: false});
-                interval = this.time.addEvent({delay: 5000, callback: generate_tween, callbackScope: this, loop: true});
-                    
-            } else if (altState == 1) {
-                if (!timer.check_if_time_left_more_than(8)){
+                myDuration = 5000;
+                interval_start = this.time.addEvent({delay: 0, callback: generate_tween, callbackScope: this, loop: false});
+                
+                tmpTime = timer.getTotalSecs();
+                console.log("tmpTime is " + tmpTime.toString());
+            } 
+            else if (altState === 1) {
+                if (timer.getTotalSecs() <= tmpTime - 5){
+                    if (timer.check_if_time_left_more_than(8)) {
+                        tmpTime = timer.getTotalSecs();
+                        interval2 = this.time.addEvent({delay: 0, callback: generate_tween, callbackScope: this, loop: false})
+                    } 
+                    else {
+                        altState = 2;
+                        myDuration = (timer.getSecs() * 1000) - 3000;
+                        interval2 = this.time.addEvent({delay: 0, callback: generate_tween, callbackScope: this, loop: false})
+                    }    
+                }
+                console.log("tmpTime is " + tmpTime.toString());
+                console.log("timer.getTotalSecs is " + timer.getTotalSecs().toString());
+            } 
+            else if (altState === 2) {
+                if (!timer.check_if_time_left_more_than(3)) { // was 8
                     console.log("wrapping up...");
-                    altState = 2;
-                    console.log(interval);
-                    interval.remove();
+                    altState = 3;
                     delay_value = timer.getSecs() * 1000;
                     console.log("time left: " + delay_value.toString);
                     myDuration = delay_value;
-                    interval2 = this.time.addEvent({delay: 0, callback: generate_last_tween, callbackScope: this, loop: false});
+                    interval3 = this.time.addEvent({delay: 0, callback: generate_last_tween, callbackScope: this, loop: false});
                 }
-            } else if (altState == 2) {
+            } 
+            else if (altState === 3) {
                 if (!timer.check_if_time_left_more_than(3)) {
-                    altState = 3;
+                    altState = 4;
                     finishline_interval = this.time.addEvent({delay: 0, callback: move_finish_line, callbackScope: this, loop: false});
                 }
             }
-            // console.log(state);
+
             move_backgrounds();
-            // if state is 2, the race has begun!
-
-            // animate dinos
-
-            // increment timer down.
-            // console.log("test");
+            
 
             if (timer.is_done()){
                 console.log("timer is done!")
-                // console.log(timer.getNums);
+                end_music();
+                countdown.remove();
+                play_sfx('fanfare');
+
+                dino1.play("dino1_idle");
+                dino2.play("dino2_idle");
+                dino3.play("dino3_idle");
+                dino4.play("dino4_idle");
+
                 state = 3;
+                altState = 0;
             }
-        } else if (state == 3) {
+        } 
+        else if (state === 3) {
+            if (altState === 0){
+                altState = 1;
+                display_winner_text();
+                againText.setVisible(true);
+            } else if (altState === 1) {
+                if (clicked) {
+                    clicked = false;
+                    if (this.b_again.buttonCheck(this.clickX, this.clickY)) {
+                        change_state(0);
+                        altState = 0;
+                        reset_main_menu();
+                        console.log("back to main menu...");
+                    }
+                }
+            }
             // console.log(state);
             // console.log(state)
-            // race is over.
+            // //race is over.
             // console.log("race is over!!!")
         }
 		
+        update_shadow_position();
     }
 
+    function reset_main_menu() {
+        bg02.setPosition(0, 0);
+        bg02B.setPosition(800, 0);
+        bg02C.setPosition(-800, 0);
+        startline.setPosition(-200, 0).setVisible(false);
+        finishline.setPosition(150 + 1600, 0).setVisible(true);
 
-    // var self = this;
+        timerBG.setPosition(200, 60);
+        timerBGGreens.setPosition(200, 60).setVisible(true);
+        timerBGTexts.setPosition(200, 60).setVisible(true);
+        title2.setPosition(245, 30).setVisible(true);
+        dino_timer_logo.setVisible(true);
+        timerText.setPosition(360, 180);
+        dino1_shadow.setPosition(190 + 40, 200).setVisible(false);
+        dino2_shadow.setPosition(190, 300).setVisible(false);
+        dino3_shadow.setPosition(190 - 40, 400).setVisible(false);
+        dino4_shadow.setPosition(190 - 80, 500).setVisible(false);
+        dino1.setPosition(190 + 40, 200).setVisible(false);
+        dino2.setPosition(190, 300).setVisible(false);
+        dino3.setPosition(190 - 40, 400).setVisible(false);
+        dino4.setPosition(190 - 80, 500).setVisible(false);
+        startText.setVisible(false);
+        againText.setVisible(false);
+        blue_wins.setVisible(false);
+        green_wins.setVisible(false);
+        pink_wins.setVisible(false);
+        orange_wins.setVisible(false);
+        show_credits();
+    }
+
+    function show_credits() {
+        credits0a.setVisible(true);
+        credits1a.setVisible(true);
+        credits1b.setVisible(true);
+        credits1c.setVisible(true);
+        credits2a.setVisible(true);
+        credits2b.setVisible(true);
+    }
+
+    function hide_credits() {
+        credits0a.setVisible(false);
+        credits1a.setVisible(false);
+        credits1b.setVisible(false);
+        credits1c.setVisible(false);
+        credits2a.setVisible(false);
+        credits2b.setVisible(false);
+    }
+
+    function display_winner_text(){
+        if (winning_index === 0) {
+            blue_wins.setVisible(true);
+        } else if (winning_index === 1) {
+            green_wins.setVisible(true);
+        } else if (winning_index === 2) {
+            pink_wins.setVisible(true);
+        } else if (winning_index === 3) {
+            orange_wins.setVisible(true);
+        }
+    }
+
+    function start_music(){
+        bgmusic = game.sound.add('hillbilly');
+        bgmusic.loop = true;
+        bgmusic.play();
+    }
+
+    function end_music() {
+        bgmusic.stop();
+    }
+
+    function play_sfx(sfxName) {
+        sfx = game.sound.add(sfxName);
+        sfx.play();
+    }
+
+    function update_shadow_position() {
+        dino1_shadow.setPosition(dino1.x, dino1.y);
+        dino2_shadow.setPosition(dino2.x, dino2.y);
+        dino3_shadow.setPosition(dino3.x, dino3.y);
+        dino4_shadow.setPosition(dino4.x, dino4.y);
+    }
 
     function generate_tween() {
-        // this.tweens.data.each(function(tween) {
-        //     tween.stop();
-        //     // this.tweens.remove(tween);
-        // })
+        console.log("CALL: Generate Tween.");
 
         for (var i = 0; i < dinos.length; i++) {
             startPos = dinos[i].x
             endPos = Phaser.Math.Between(40, 400);
             tween = this.tweens.add({
-            targets: dinos[i],
+            targets: dinos[i], 
             x: endPos,
-            duration: 5000,
+            duration: myDuration,
             ease: 'Linear',
             onComplete: function () {
-                console.log('Tween completed');
+                console.log('Generate Tween completed.');
             },
             paused: true
             });
@@ -266,11 +485,7 @@
     }
 
     function generate_last_tween() {
-        // this.tweens.data.each(function(tween) {
-        //     tween.stop();
-        //     // this.tweens.remove(tween);
-        // })
-
+        console.log("CALL: Last Tween.");
         winning_index = Phaser.Math.Between(0, dinos.length - 1)
 
         for (var i = 0; i < dinos.length; i++) {
@@ -282,13 +497,16 @@
             else {
                 endPos = Phaser.Math.Between(40, 400);
             }
+            let dino_s = dinoShadows[i];
+            console.log(dino_s);
+            console.log("===");
             tween = this.tweens.add({
-            targets: dinos[i],
+            targets: dinos[i], 
             x: endPos,
             duration: myDuration,
             ease: 'Linear',
             onComplete: function () {
-                console.log('Tween completed');
+                console.log('Last Tween completed');
             },
             paused: true
             });
@@ -305,7 +523,7 @@
             duration: 3000,
             ease: 'Linear',
             onComplete: function () {
-                console.log('Tween completed');
+                console.log('Finish Line Tween completed');
             },
             paused: true
         });
@@ -328,8 +546,7 @@
         if ((object.x - speed) < -800) {
             if (isLoop) {
                 object.x += 1600;
-                console.log("====== TIME =======");
-                console.log(this.time.now - startTime);
+ 
             }
             else {
                 object.setVisible(false);
@@ -340,7 +557,7 @@
 
     function increment_timer() {
         timer.increment_down();
-        timer.printNums();
+        console.log("counting");
         update_display();
     }
 
@@ -349,7 +566,8 @@
         timerBGGreens.setVisible(false);
         timerBGTexts.setVisible(false);
         title2.setVisible(false);
-        title.setVisible(false);
+        dino_timer_logo.setVisible(false)
+        // title.setVisible(false);
         timerBG.setPosition(timerBG.x - 100, timerBG.y - 140);
         timerText.setPosition(timerText.x - 100, timerText.y - 140);
         startText.setVisible(true);
@@ -357,26 +575,24 @@
         dino2.setVisible(true);
         dino3.setVisible(true);
         dino4.setVisible(true);
+        dino1_shadow.setVisible(true);
+        dino2_shadow.setVisible(true);
+        dino3_shadow.setVisible(true);
+        dino4_shadow.setVisible(true);
         startline.setVisible(true);
+        hide_credits();
     }
 
     function check_timer_button(button, event_x, event_y) {
         if (button.buttonCheck(event_x, event_y)) {
-            // console.log("true")
-            // console.log(button.button_num)
             timer_press(button.button_type, button.button_num)
         }
-        // else {
-        //     console.log("false")
-        //     console.log(event_x, event_y)
-        // }
     }
 
     function timer_press(button_type, num) {
         if (button_type == "num") {
             timer.add_num(num)
             update_display()
-            // update_display
         }
         else if (button_type == "clear") {
             timer.reset()
@@ -384,21 +600,19 @@
         }
         else if (button_type == "set") {
             change_state(1);
-            v = convert_time(timer.getNums());
-            // console.log(v); 
+            if (timer.getTotalSecs() < 10) {
+                v = [0, 0, 0, 0, 1, 0];
+            } else {
+                v = convert_time(timer.getNums());
+            }
             timer.set(v);
-            // console.log(timer.getNums()) ;
 
             update_display()
             setup_race()
-            // convert timer_nums into timer time
-            // start timer
         }
     };
 
     function update_display() {
-        // console.log("getting timer nums");
-        // console.log(timer.getNums);
         time = (timer.getValue(0).toString() + timer.getValue(1).toString() + ":" 
         + timer.getValue(2).toString() + timer.getValue(3).toString() + ":" 
         + timer.getValue(4).toString() + timer.getValue(5).toString()) 
@@ -483,12 +697,19 @@
             return this.timer_nums[2] * 10 + this.timer_nums[3];
         }
         getSecs() {
-            return secs = this.timer_nums[4] * 10 + this.timer_nums[5];
+            return this.timer_nums[4] * 10 + this.timer_nums[5];
         }
+        getTotalSecs(){
+            let hrs = this.timer_nums[0] * 10 + this.timer_nums[1];
+            let hrSecs = hrs * 60 * 60;
+            let mins = this.timer_nums[2] * 10 + this.timer_nums[3];
+            let minSecs = mins * 60;
+            let secs = this.timer_nums[4] * 10 + this.timer_nums[5];
+            let totalSecs = hrSecs + minSecs + secs;
+            return totalSecs;
+        }
+
         check_if_time_left_more_than(secs) {
-            // console.log(timer.getHrs())
-            // console.log(timer.getMins())
-            // console.log(timer.getSecs())
             if (timer.getHrs() == 0){
                 if (timer.getMins() == 0){
                     if (timer.getSecs() <= secs){
@@ -500,9 +721,9 @@
         }
 
         increment_down() {
-            hrs = this.timer_nums[0] * 10 + this.timer_nums[1];
-            mins = this.timer_nums[2] * 10 + this.timer_nums[3];
-            secs = this.timer_nums[4] * 10 + this.timer_nums[5];
+            let hrs = this.timer_nums[0] * 10 + this.timer_nums[1];
+            let mins = this.timer_nums[2] * 10 + this.timer_nums[3];
+            let secs = this.timer_nums[4] * 10 + this.timer_nums[5];
 
             if (secs == 0)
                 if (mins == 0) {
@@ -526,9 +747,9 @@
         }
 
         is_done(){
-            hrs = this.timer_nums[0] * 10 + this.timer_nums[1];
-            mins = this.timer_nums[2] * 10 + this.timer_nums[3];
-            secs = this.timer_nums[4] * 10 + this.timer_nums[5];
+            let hrs = this.timer_nums[0] * 10 + this.timer_nums[1];
+            let mins = this.timer_nums[2] * 10 + this.timer_nums[3];
+            let secs = this.timer_nums[4] * 10 + this.timer_nums[5];
             if (hrs == 0){
                 if (mins == 0){
                     if (secs == 0){
@@ -546,10 +767,6 @@
 
         getNums(){
             return this.timer_nums;
-        }
-
-        printNums(){
-            // console.log(this.timer_nums);
         }
 
         getValue(index) {
