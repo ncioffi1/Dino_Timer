@@ -1,4 +1,4 @@
-# WELCOME TO DINO TIMER
+# DINO TIMER
 
 Check out the [Live Site!](https://ncioffi1.github.io/Dino_Timer/)
 
